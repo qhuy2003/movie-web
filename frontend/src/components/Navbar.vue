@@ -15,6 +15,9 @@
         <router-link to="/movies" class="nav-link" exact-active-class="active" @click="isMobileMenuOpen = false">
           <Compass :size="18" /> Khám Phá
         </router-link>
+        <router-link to="/booking" class="nav-link" exact-active-class="active" @click="isMobileMenuOpen = false">
+          <TicketCheck :size="18" /> Đặt Vé
+        </router-link>
         <router-link to="/watchlist" class="nav-link" exact-active-class="active" @click="isMobileMenuOpen = false">
           <Heart :size="18" /> Phim Yêu Thích
           <span v-if="watchlistCount > 0" class="badge-count">{{ watchlistCount }}</span>
@@ -66,6 +69,9 @@
             <router-link to="/watchlist" class="dropdown-item" @click="isUserDropdownOpen = false">
               <Heart :size="16" /> Tủ Phim Yêu Thích
             </router-link>
+            <router-link to="/my-tickets" class="dropdown-item" @click="isUserDropdownOpen = false">
+              <TicketCheck :size="16" /> Vé của tôi
+            </router-link>
             <button class="dropdown-item logout" @click="handleLogout">
               <LogOut :size="16" /> Đăng Xuất
             </button>
@@ -93,7 +99,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Film, Search, Heart, Compass, Home, X, User, LogOut, ChevronDown, Shield } from '@lucide/vue';
+import { Film, Search, Heart, Compass, Home, X, User, LogOut, ChevronDown, Shield, TicketCheck } from '@lucide/vue';
 import { watchlistStore } from '../services/watchlist.js';
 import { authState, fetchMe } from '../services/auth.js';
 import AuthModal from './AuthModal.vue';

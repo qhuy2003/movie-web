@@ -48,15 +48,11 @@
             <!-- Left Poster -->
             <div class="poster-col">
               <img :src="activeMovie.poster_url" :alt="activeMovie.title" class="poster-card-img" />
-              <button class="btn btn-primary full-width" @click="$emit('play', activeMovie)">
-                <Play :size="18" fill="currentColor" /> Xem Phim
+              <button class="btn btn-primary full-width" @click="playTrailer">
+                <Play :size="18" fill="currentColor" /> Xem Trailer
               </button>
-              <button
-                v-if="activeMovie.trailer_url"
-                class="btn btn-trailer full-width"
-                @click="playTrailer"
-              >
-                <Play :size="18" /> Xem Trailer
+              <button class="btn btn-secondary full-width" @click="$emit('book', activeMovie)">
+                Đặt Vé Tại Rạp
               </button>
               <button 
                 class="btn btn-secondary full-width"
@@ -137,7 +133,7 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'play']);
+const emit = defineEmits(['close', 'play', 'book']);
 
 const detailedMovieInfo = ref(null);
 
@@ -179,7 +175,13 @@ const toggleWatchlist = () => {
 };
 
 const playTrailer = () => {
-  if (!activeMovie.value?.trailer_url) return;
+  if (!activeMovie.value?.trailer_url) {
+    const title = activeMovie.value?.origin_name || activeMovie.value?.title || '';
+    if (!title) return;
+    const query = encodeURIComponent(`${title} official trailer`);
+    window.open(`https://www.youtube.com/results?search_query=${query}`, '_blank', 'noopener,noreferrer');
+    return;
+  }
   emit('play', activeMovie.value, {
     id: `trailer-${activeMovie.value.id}`,
     name: 'Trailer chính thức',

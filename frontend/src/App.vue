@@ -11,6 +11,7 @@
             :is="Component" 
             @play="handlePlayMovie" 
             @open-detail="handleOpenDetail" 
+            @open-auth="showAuthModal = true"
           />
         </transition>
       </router-view>
@@ -25,6 +26,7 @@
       :movie="selectedMovie" 
       @close="showDetailModal = false" 
       @play="handlePlayMovie" 
+      @book="handleBookMovie"
     />
 
     <!-- Video Player Modal Screen -->
@@ -45,6 +47,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import Navbar from './components/Navbar.vue';
 import Footer from './components/Footer.vue';
 import MovieDetailModal from './components/MovieDetailModal.vue';
@@ -54,6 +57,7 @@ import { watchlistStore } from './services/watchlist.js';
 import { fetchMovieDetailBySlug } from './services/api.js';
 
 const selectedMovie = ref(null);
+const router = useRouter();
 const selectedEpisode = ref(null);
 const showDetailModal = ref(false);
 const showPlayerModal = ref(false);
@@ -68,6 +72,11 @@ onMounted(() => {
 const handleOpenDetail = (movie) => {
   selectedMovie.value = movie;
   showDetailModal.value = true;
+};
+
+const handleBookMovie = (movie) => {
+  showDetailModal.value = false;
+  router.push({ name: 'booking', query: { movie: movie.id } });
 };
 
 const handlePlayMovie = async (movie, ep = null) => {

@@ -5,6 +5,8 @@ import WatchlistView from '../views/WatchlistView.vue';
 import LoginView from '../views/LoginView.vue';
 import RegisterView from '../views/RegisterView.vue';
 import AdminView from '../views/AdminView.vue';
+import BookingView from '../views/BookingView.vue';
+import MyTicketsView from '../views/MyTicketsView.vue';
 import { authState, fetchMe } from '../services/auth.js';
 
 const routes = [
@@ -22,6 +24,17 @@ const routes = [
     path: '/watchlist',
     name: 'watchlist',
     component: WatchlistView
+  },
+  {
+    path: '/booking',
+    name: 'booking',
+    component: BookingView
+  },
+  {
+    path: '/my-tickets',
+    name: 'my-tickets',
+    component: MyTicketsView,
+    meta: { requiresAuth: true }
   },
   {
     path: '/login',
@@ -50,6 +63,9 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to) => {
+  if (to.meta.requiresAuth && !authState.isAuthenticated) {
+    return { name: 'login', query: { redirect: to.fullPath } };
+  }
   if (to.meta.requiresAdmin) {
     if (!authState.isAuthenticated) {
       return { name: 'home' };

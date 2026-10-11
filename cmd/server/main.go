@@ -1,7 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"log"
+	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -26,6 +31,7 @@ func CORSMiddleware() gin.HandlerFunc {
 }
 
 func main() {
+	loadEnvFile(".env")
 	// Initialize PostgreSQL Database Connection
 	log.Println("🔄 Đang khởi tạo kết nối PostgreSQL movie_db...")
 	db.InitDB()
@@ -50,6 +56,9 @@ func main() {
 	r.GET("/years", handler.GetYears)
 	r.GET("/years/:year", handler.GetMoviesByYear)
 	r.GET("/catalog/:slug", handler.GetMoviesByCatalogSlug)
+	r.GET("/cinemas", handler.GetCinemas)
+	r.GET("/showtimes", handler.GetShowtimes)
+	r.GET("/showtimes/:id/seats", handler.GetShowtimeSeats)
 
 	// Authentication Routes
 	authRoutes := r.Group("/auth")
@@ -66,7 +75,14 @@ func main() {
 		apiRoutes.GET("/watchlist", handler.GetUserWatchlist)
 		apiRoutes.POST("/watchlist", handler.AddWatchlist)
 		apiRoutes.DELETE("/watchlist/:movieId", handler.RemoveWatchlist)
+		apiRoutes.GET("/bookings", handler.GetMyBookings)
+		apiRoutes.GET("/bookings/:code", handler.GetMyBooking)
+		apiRoutes.POST("/bookings", handler.CreateBooking)
+		apiRoutes.POST("/bookings/:code/pay", handler.StartZaloPayPayment)
+		apiRoutes.POST("/bookings/:code/verify-payment", handler.VerifyZaloPayPayment)
+		apiRoutes.POST("/bookings/:code/cancel", handler.CancelBooking)
 	}
+	r.POST("/payments/zalopay/callback", handler.ZaloPayCallback)
 
 	// Protected Admin Management Routes
 	adminRoutes := r.Group("/admin")
@@ -94,4 +110,62 @@ func main() {
 
 	log.Println("🚀 Go Server đang chạy tại port :8080")
 	r.Run(":8080")
+}
+
+func loadEnvFile(path string) {
+	candidates := []string{path}
+	if _, sourceFile, _, ok := runtime.Caller(0); ok {
+		candidates = append(candidates, filepath.Join(filepath.Dir(sourceFile), "..", "..", path))
+	}
+	for _, candidate := range candidates {
+		loaded, err := readEnvFile(candidate)
+		if err != nil {
+			log.Printf("Unable to read environment file %s: %v", candidate, err)
+		}
+		if loaded && os.Getenv("ZALOPAY_APP_ID") != "" && os.Getenv("ZALOPAY_KEY1") != "" && os.Getenv("ZALOPAY_KEY2") != "" {
+			log.Printf("Loaded local environment settings from %s", candidate)
+			return
+		}
+	}
+}
+
+func readEnvFile(path string) (bool, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		}
+		return false, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	loaded := false
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, value, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		key = strings.TrimSpace(key)
+		value = strings.Trim(strings.TrimSpace(value), "\"'")
+		if key == "" {
+			continue
+		}
+		if current, exists := os.LookupEnv(key); exists && current != "" {
+			continue
+		}
+		if err := os.Setenv(key, value); err != nil {
+			log.Printf("Unable to set environment variable %s", key)
+		} else {
+			loaded = true
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return loaded, err
+	}
+	return loaded, nil
 }
