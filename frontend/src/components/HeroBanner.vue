@@ -32,8 +32,8 @@
 
         <!-- Actions -->
         <div v-reveal="{ delay: 380 }" class="hero-actions">
-          <button class="btn btn-primary" @click="$emit('play', featuredMovie)">
-            <Play :size="20" fill="currentColor" /> Xem Phim Ngay
+          <button class="btn btn-primary" @click="$emit('open-detail', featuredMovie)">
+            <Play :size="20" fill="currentColor" /> Xem Trailer
           </button>
           <button class="btn btn-secondary" @click="$emit('open-detail', featuredMovie)">
             <Info :size="20" /> Chi Tiết Phim

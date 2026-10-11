@@ -9,7 +9,7 @@
             <span>Cine<span class="highlight">Stream</span></span>
           </div>
           <p class="brand-desc">
-            Trải nghiệm xem phim chuẩn điện ảnh với chất lượng 4K UHD, tốc độ cao và giao diện hiện đại bậc nhất.
+            Khám phá thông tin, thể loại, năm phát hành và điểm đánh giá phim; chọn suất chiếu và đặt vé trực tuyến dễ dàng.
           </p>
         </div>
 

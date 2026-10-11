@@ -13,7 +13,7 @@
             <Film :size="28" class="logo-icon" />
           </div>
           <h2 class="auth-title">{{ isLoginTab ? 'Đăng Nhập CineStream' : 'Tạo Tài Khoản Mới' }}</h2>
-          <p class="auth-sub">Trải nghiệm xem phim chất lượng 4K và lưu tủ phim cá nhân.</p>
+          <p class="auth-sub">Đặt vé xem phim, khám phá thể loại, năm phát hành và điểm đánh giá của các bộ phim yêu thích.</p>
         </div>
 
         <!-- Mode Tabs -->
