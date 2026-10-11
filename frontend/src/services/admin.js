@@ -1,6 +1,7 @@
 import { authState } from './auth.js';
+import { API_BASE_URL } from './config.js';
 
-const API_BASE_URL = 'http://localhost:8080/admin';
+const ADMIN_API_URL = `${API_BASE_URL}/admin`;
 
 function getHeaders() {
   return {
@@ -11,13 +12,13 @@ function getHeaders() {
 
 // ==================== USERS API ====================
 export async function fetchAdminUsers() {
-  const res = await fetch(`${API_BASE_URL}/users`, { headers: getHeaders() });
+  const res = await fetch(`${ADMIN_API_URL}/users`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Không thể tải danh sách người dùng');
   return await res.json();
 }
 
 export async function updateUserRole(id, role) {
-  const res = await fetch(`${API_BASE_URL}/users/${id}/role`, {
+  const res = await fetch(`${ADMIN_API_URL}/users/${id}/role`, {
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify({ role })
@@ -28,7 +29,7 @@ export async function updateUserRole(id, role) {
 }
 
 export async function deleteUser(id) {
-  const res = await fetch(`${API_BASE_URL}/users/${id}`, {
+  const res = await fetch(`${ADMIN_API_URL}/users/${id}`, {
     method: 'DELETE',
     headers: getHeaders()
   });
@@ -39,13 +40,13 @@ export async function deleteUser(id) {
 
 // ==================== GENRES API ====================
 export async function fetchAdminGenres() {
-  const res = await fetch(`${API_BASE_URL}/genres`, { headers: getHeaders() });
+  const res = await fetch(`${ADMIN_API_URL}/genres`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Không thể tải danh sách thể loại');
   return await res.json();
 }
 
 export async function createGenre(name, slug) {
-  const res = await fetch(`${API_BASE_URL}/genres`, {
+  const res = await fetch(`${ADMIN_API_URL}/genres`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify({ name, slug })
@@ -56,7 +57,7 @@ export async function createGenre(name, slug) {
 }
 
 export async function updateGenre(id, name, slug) {
-  const res = await fetch(`${API_BASE_URL}/genres/${id}`, {
+  const res = await fetch(`${ADMIN_API_URL}/genres/${id}`, {
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify({ name, slug })
@@ -67,7 +68,7 @@ export async function updateGenre(id, name, slug) {
 }
 
 export async function deleteGenre(id) {
-  const res = await fetch(`${API_BASE_URL}/genres/${id}`, {
+  const res = await fetch(`${ADMIN_API_URL}/genres/${id}`, {
     method: 'DELETE',
     headers: getHeaders()
   });
@@ -77,7 +78,7 @@ export async function deleteGenre(id) {
 }
 
 export async function importGenresAdmin() {
-  const res = await fetch(`${API_BASE_URL}/genres/import`, {
+  const res = await fetch(`${ADMIN_API_URL}/genres/import`, {
     method: 'POST',
     headers: getHeaders()
   });
@@ -96,13 +97,13 @@ export async function importGenresAdmin() {
 
 // ==================== MOVIES API ====================
 export async function fetchAdminMovies() {
-  const res = await fetch(`${API_BASE_URL}/movies`, { headers: getHeaders() });
+  const res = await fetch(`${ADMIN_API_URL}/movies`, { headers: getHeaders() });
   if (!res.ok) throw new Error('Không thể tải danh sách phim');
   return await res.json();
 }
 
 export async function createMovieAdmin(movieData) {
-  const res = await fetch(`${API_BASE_URL}/movies`, {
+  const res = await fetch(`${ADMIN_API_URL}/movies`, {
     method: 'POST',
     headers: getHeaders(),
     body: JSON.stringify(movieData)
@@ -113,7 +114,7 @@ export async function createMovieAdmin(movieData) {
 }
 
 export async function updateMovieAdmin(id, movieData) {
-  const res = await fetch(`${API_BASE_URL}/movies/${id}`, {
+  const res = await fetch(`${ADMIN_API_URL}/movies/${id}`, {
     method: 'PUT',
     headers: getHeaders(),
     body: JSON.stringify(movieData)
@@ -124,7 +125,7 @@ export async function updateMovieAdmin(id, movieData) {
 }
 
 export async function deleteMovieAdmin(id) {
-  const res = await fetch(`${API_BASE_URL}/movies/${id}`, {
+  const res = await fetch(`${ADMIN_API_URL}/movies/${id}`, {
     method: 'DELETE',
     headers: getHeaders()
   });
@@ -134,7 +135,7 @@ export async function deleteMovieAdmin(id) {
 }
 
 export async function importMoviesAdmin() {
-  const res = await fetch(`${API_BASE_URL}/movies/import`, {
+  const res = await fetch(`${ADMIN_API_URL}/movies/import`, {
     method: 'POST',
     headers: getHeaders()
   });
@@ -144,7 +145,7 @@ export async function importMoviesAdmin() {
     data = JSON.parse(body);
   } catch {
     const contentType = res.headers.get('content-type') || 'không xác định';
-    throw new Error(`API nhập phim trả về dữ liệu không phải JSON (HTTP ${res.status}, ${contentType}). Hãy kiểm tra backend tại localhost:8080.`);
+    throw new Error(`API nhập phim trả về dữ liệu không phải JSON (HTTP ${res.status}, ${contentType}). Hãy kiểm tra backend đã deploy.`);
   }
   if (!res.ok) throw new Error(data.error || 'Import movies failed');
   return data;

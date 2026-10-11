@@ -1,4 +1,6 @@
-const API_BASE_URL = 'http://localhost:8080/movies';
+import { API_BASE_URL as API_ROOT_URL } from './config.js';
+
+const API_BASE_URL = `${API_ROOT_URL}/movies`;
 
 // High Quality Fallback & Curated Movie Database
 export const MOCK_MOVIES = [
@@ -267,7 +269,7 @@ export const GENRES_LIST = [
 
 export async function fetchGenres() {
   try {
-    const res = await fetch('http://localhost:8080/genres');
+    const res = await fetch(`${API_ROOT_URL}/genres`);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
@@ -295,7 +297,7 @@ export async function fetchGenres() {
 
 export async function fetchMovieDetailBySlug(slug) {
   try {
-    const res = await fetch(`http://localhost:8080/movies/detail/${slug}`, { cache: 'no-store' });
+    const res = await fetch(`${API_ROOT_URL}/movies/detail/${slug}`, { cache: 'no-store' });
     if (res.ok) {
       const data = await res.json();
       if (data && data.movie) {
@@ -320,7 +322,7 @@ export async function fetchMovieDetailBySlug(slug) {
 
 export async function fetchActors(query = '') {
   try {
-    const url = query ? `http://localhost:8080/actors?q=${encodeURIComponent(query)}` : 'http://localhost:8080/actors';
+    const url = query ? `${API_ROOT_URL}/actors?q=${encodeURIComponent(query)}` : `${API_ROOT_URL}/actors`;
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
@@ -352,7 +354,7 @@ export async function fetchActors(query = '') {
 
 export async function fetchCountries() {
   try {
-    const res = await fetch('http://localhost:8080/countries');
+    const res = await fetch(`${API_ROOT_URL}/countries`);
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) return data;
@@ -394,7 +396,7 @@ export async function fetchMoviesByCountry(slug, filters = {}) {
   const queryString = params.toString() ? `?${params.toString()}` : '';
 
   try {
-    const res = await fetch(`http://localhost:8080/countries/${slug}${queryString}`);
+    const res = await fetch(`${API_ROOT_URL}/countries/${slug}${queryString}`);
     if (res.ok) {
       return await res.json();
     }
@@ -425,7 +427,7 @@ export async function fetchMoviesByCatalog(slug = 'subteam', filters = {}) {
   const queryString = params.toString() ? `?${params.toString()}` : '';
 
   try {
-    const res = await fetch(`http://localhost:8080/catalog/${slug}${queryString}`);
+    const res = await fetch(`${API_ROOT_URL}/catalog/${slug}${queryString}`);
     if (res.ok) {
       return await res.json();
     }
@@ -447,7 +449,7 @@ export async function fetchMoviesByCatalog(slug = 'subteam', filters = {}) {
 
 export async function fetchYears() {
   try {
-    const res = await fetch('http://localhost:8080/years');
+    const res = await fetch(`${API_ROOT_URL}/years`);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const payload = await res.json();
     const items = payload?.data?.items || payload?.items || payload;
@@ -469,7 +471,7 @@ export async function fetchMoviesByYear(year, filters = {}) {
   if (filters.status) params.set('status', filters.status);
   const query = params.toString() ? `?${params}` : '';
   const urls = [
-    `http://localhost:8080/years/${encodeURIComponent(year)}${query}`,
+    `${API_ROOT_URL}/years/${encodeURIComponent(year)}${query}`,
     `https://vsmov.com/api/nam/${encodeURIComponent(year)}${query}`
   ];
   for (const url of urls) {

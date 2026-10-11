@@ -1,6 +1,5 @@
 import { reactive } from 'vue';
-
-const API_BASE_URL = 'http://localhost:8080';
+import { API_BASE_URL } from './config.js';
 
 const savedToken = localStorage.getItem('cinestream_token') || '';
 const savedUser = JSON.parse(localStorage.getItem('cinestream_user') || 'null');
@@ -33,7 +32,7 @@ async function parseResponseBody(res) {
     return JSON.parse(text);
   } catch (e) {
     if (!res.ok) {
-      throw new Error(`Lỗi máy chủ (${res.status}): ${text || 'Không thể kết nối đến Go Backend Server (http://localhost:8080)'}`);
+      throw new Error(`Lỗi máy chủ (${res.status}): ${text || 'Không thể kết nối đến Go Backend Server'}`);
     }
     throw new Error('Dữ liệu trả về từ server không phải định dạng JSON hợp lệ.');
   }
@@ -56,7 +55,7 @@ export async function registerUser(email, username, password) {
     return data;
   } catch (err) {
     if (err.name === 'TypeError' && err.message.includes('fetch')) {
-      throw new Error('Không thể kết nối tới Go Backend Server tại http://localhost:8080. Bạn đã chạy lệnh "go run cmd/server/main.go" chưa?');
+      throw new Error('Không thể kết nối tới Go Backend Server. Hãy kiểm tra URL backend và trạng thái dịch vụ.');
     }
     throw err;
   }
@@ -79,7 +78,7 @@ export async function loginUser(email, password) {
     return data;
   } catch (err) {
     if (err.name === 'TypeError' && err.message.includes('fetch')) {
-      throw new Error('Không thể kết nối tới Go Backend Server tại http://localhost:8080. Bạn đã chạy lệnh "go run cmd/server/main.go" chưa?');
+      throw new Error('Không thể kết nối tới Go Backend Server. Hãy kiểm tra URL backend và trạng thái dịch vụ.');
     }
     throw err;
   }

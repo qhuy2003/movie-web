@@ -1,6 +1,5 @@
 import { authState } from './auth.js';
-
-const API_BASE_URL = 'http://localhost:8080';
+import { API_BASE_URL } from './config.js';
 
 async function request(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', ...options.headers };

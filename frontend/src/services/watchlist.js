@@ -1,7 +1,8 @@
 import { reactive, watch } from 'vue';
 import { authState } from './auth.js';
+import { API_BASE_URL } from './config.js';
 
-const API_BASE_URL = 'http://localhost:8080/api/watchlist';
+const WATCHLIST_API_URL = `${API_BASE_URL}/api/watchlist`;
 const LOCAL_STORAGE_KEY = 'cinestream_watchlist';
 
 export const watchlistStore = reactive({
@@ -13,7 +14,7 @@ export const watchlistStore = reactive({
       return;
     }
     try {
-      const res = await fetch(API_BASE_URL, {
+      const res = await fetch(WATCHLIST_API_URL, {
         headers: { 'Authorization': `Bearer ${authState.token}` }
       });
       if (res.ok) {
@@ -52,7 +53,7 @@ export const watchlistStore = reactive({
       this.items.splice(index, 1);
       if (authState.token) {
         try {
-          await fetch(`${API_BASE_URL}/${movieId}`, {
+          await fetch(`${WATCHLIST_API_URL}/${movieId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${authState.token}` }
           });
@@ -75,7 +76,7 @@ export const watchlistStore = reactive({
 
       if (authState.token) {
         try {
-          await fetch(API_BASE_URL, {
+          await fetch(WATCHLIST_API_URL, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
