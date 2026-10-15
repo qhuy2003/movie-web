@@ -114,6 +114,74 @@
               </div>
             </div>
           </div>
+
+          <section class="reviews-section" aria-labelledby="reviews-title">
+            <div class="reviews-heading">
+              <div>
+                <h3 id="reviews-title">Đánh giá & bình luận</h3>
+                <p>Chia sẻ cảm nhận của bạn sau khi xem phim.</p>
+              </div>
+              <div class="reviews-summary">
+                <strong>★ {{ averageRating.toFixed(1) }}</strong>
+                <span>{{ totalReviews }} đánh giá</span>
+              </div>
+            </div>
+
+            <p v-if="reviewsError" class="reviews-message error">{{ reviewsError }}</p>
+            <p v-else-if="reviewsLoading" class="reviews-message">Đang tải bình luận…</p>
+
+            <template v-else>
+              <form v-if="authState.isAuthenticated" class="review-form" @submit.prevent="submitReview">
+                <h4>Đánh giá phim này</h4>
+                <p class="review-form-hint">Mỗi tài khoản có một đánh giá cho mỗi phim. Gửi lại sẽ cập nhật đánh giá trước đó.</p>
+                <div class="rating-picker" role="radiogroup" aria-label="Chọn số sao">
+                  <button
+                    v-for="star in 5"
+                    :key="star"
+                    type="button"
+                    class="rating-choice"
+                    :class="{ selected: star <= reviewRating }"
+                    :aria-label="`${star} sao`"
+                    :aria-pressed="reviewRating === star"
+                    @click="reviewRating = star"
+                  >★</button>
+                </div>
+                <textarea
+                  v-model="reviewComment"
+                  maxlength="1000"
+                  rows="4"
+                  placeholder="Viết cảm nhận của bạn về bộ phim…"
+                  required
+                ></textarea>
+                <div class="review-form-footer">
+                  <span>{{ reviewComment.length }}/1000 ký tự</span>
+                  <button class="btn btn-primary" type="submit" :disabled="reviewBusy || !reviewComment.trim()">
+                    {{ reviewBusy ? 'Đang gửi…' : 'Gửi đánh giá' }}
+                  </button>
+                </div>
+                <p v-if="reviewNotice" class="reviews-message success">{{ reviewNotice }}</p>
+              </form>
+
+              <div v-else class="review-login-prompt">
+                <span>Đăng nhập để chấm điểm và bình luận về phim.</span>
+                <button class="btn btn-secondary" type="button" @click="$emit('open-auth')">Đăng nhập</button>
+              </div>
+
+              <div v-if="reviews.length" class="review-list">
+                <article v-for="review in reviews" :key="review.id" class="review-card">
+                  <div class="review-card-heading">
+                    <div class="review-author">
+                      <span class="review-avatar">{{ review.username?.charAt(0)?.toUpperCase() || '?' }}</span>
+                      <div><strong>{{ review.username }}</strong><time>{{ formatReviewDate(review.updated_at || review.created_at) }}</time></div>
+                    </div>
+                    <span class="review-stars" :aria-label="`${review.rating} trên 5 sao`">{{ '★'.repeat(review.rating) }}<span>{{ '★'.repeat(5 - review.rating) }}</span></span>
+                  </div>
+                  <p class="review-comment">{{ review.comment }}</p>
+                </article>
+              </div>
+              <p v-else class="reviews-message empty-reviews">Chưa có bình luận nào. Hãy là người đầu tiên đánh giá phim này!</p>
+            </template>
+          </section>
         </div>
       </div>
     </div>
@@ -121,10 +189,12 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { X, Play, Heart, Clock, User, Tag } from '@lucide/vue';
 import { watchlistStore } from '../services/watchlist.js';
 import { fetchMovieDetailBySlug } from '../services/api.js';
+import { authState } from '../services/auth.js';
+import { fetchMovieReviews, saveMovieReview } from '../services/reviews.js';
 
 const props = defineProps({
   movie: {
@@ -133,9 +203,18 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'play', 'book']);
+const emit = defineEmits(['close', 'play', 'book', 'open-auth']);
 
 const detailedMovieInfo = ref(null);
+const reviews = ref([]);
+const averageRating = ref(0);
+const totalReviews = ref(0);
+const reviewsLoading = ref(true);
+const reviewsError = ref('');
+const reviewRating = ref(5);
+const reviewComment = ref('');
+const reviewBusy = ref(false);
+const reviewNotice = ref('');
 
 const apiEpisodes = computed(() => {
   const groups = detailedMovieInfo.value?.episodes;
@@ -192,6 +271,30 @@ const playTrailer = () => {
 
 const loadDetailData = async () => {
   detailedMovieInfo.value = null;
+  reviews.value = [];
+  averageRating.value = 0;
+  totalReviews.value = 0;
+  reviewRating.value = 5;
+  reviewComment.value = '';
+  reviewNotice.value = '';
+  reviewsError.value = '';
+  reviewsLoading.value = true;
+
+  if (props.movie?.id) {
+    try {
+      const data = await fetchMovieReviews(props.movie.id);
+      reviews.value = data.reviews || [];
+      averageRating.value = Number(data.average_rating) || 0;
+      totalReviews.value = Number(data.total_reviews) || 0;
+    } catch (error) {
+      reviewsError.value = error.message || 'Không thể tải đánh giá phim.';
+    } finally {
+      reviewsLoading.value = false;
+    }
+  } else {
+    reviewsLoading.value = false;
+  }
+
   if (props.movie && props.movie.slug) {
     const res = await fetchMovieDetailBySlug(props.movie.slug);
     if (res && res.movie) {
@@ -199,6 +302,32 @@ const loadDetailData = async () => {
     }
   }
 };
+
+async function submitReview() {
+  if (!props.movie || !reviewComment.value.trim()) return;
+  reviewBusy.value = true;
+  reviewNotice.value = '';
+  reviewsError.value = '';
+  try {
+    await saveMovieReview(props.movie, reviewRating.value, reviewComment.value.trim());
+    reviewNotice.value = 'Đánh giá của bạn đã được lưu.';
+    const data = await fetchMovieReviews(props.movie.id);
+    reviews.value = data.reviews || [];
+    averageRating.value = Number(data.average_rating) || 0;
+    totalReviews.value = Number(data.total_reviews) || 0;
+  } catch (error) {
+    reviewsError.value = error.message || 'Không thể gửi đánh giá.';
+  } finally {
+    reviewBusy.value = false;
+  }
+}
+
+function formatReviewDate(value) {
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    timeZone: 'Asia/Ho_Chi_Minh',
+  }).format(new Date(value));
+}
 
 watch(() => props.movie, loadDetailData, { immediate: true });
 </script>
@@ -500,6 +629,49 @@ watch(() => props.movie, loadDetailData, { immediate: true });
   transform: translateY(-2px);
 }
 
+.reviews-section {
+  margin-top: 34px;
+  padding-top: 26px;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.reviews-heading, .review-card-heading, .review-author, .review-form-footer, .review-login-prompt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.reviews-heading h3 { margin: 0 0 5px; font-size: 1.35rem; }
+.reviews-heading p, .review-form-hint { margin: 0; color: var(--text-secondary); font-size: .88rem; }
+.reviews-summary { display: grid; justify-items: end; gap: 3px; white-space: nowrap; }
+.reviews-summary strong { color: #fbbf24; font-size: 1.2rem; }
+.reviews-summary span, .review-author time, .review-form-footer > span { color: var(--text-secondary); font-size: .8rem; }
+.review-form, .review-login-prompt { margin-top: 22px; padding: 18px; border: 1px solid var(--border-subtle); border-radius: 14px; background: rgba(255,255,255,.035); }
+.review-form h4 { margin: 0 0 5px; font-size: 1rem; }
+.rating-picker { display: flex; gap: 3px; margin: 12px 0; }
+.rating-choice { padding: 0 3px; border: 0; color: #64748b; background: transparent; font-size: 1.7rem; cursor: pointer; }
+.rating-choice.selected { color: #fbbf24; }
+.rating-choice:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; border-radius: 4px; }
+.review-form textarea { display: block; width: 100%; min-height: 100px; resize: vertical; padding: 12px; border: 1px solid var(--border-subtle); border-radius: 10px; color: var(--text-primary); background: rgba(0,0,0,.2); font: inherit; }
+.review-form-footer { margin-top: 10px; }
+.review-form-footer button { padding: 9px 14px; }
+.review-form-footer button:disabled { opacity: .55; cursor: not-allowed; }
+.review-login-prompt { color: var(--text-secondary); }
+.review-list { display: grid; gap: 12px; margin-top: 18px; }
+.review-card { padding: 16px 0; border-bottom: 1px solid var(--border-subtle); }
+.review-author { justify-content: flex-start; }
+.review-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; border-radius: 50%; color: #041014; background: var(--accent-cyan); font-weight: 800; }
+.review-author > div { display: grid; gap: 3px; }
+.review-author time { font-size: .76rem; }
+.review-stars { color: #fbbf24; letter-spacing: 1px; white-space: nowrap; }
+.review-stars > span { color: #475569; }
+.review-comment { margin: 12px 0 0 52px; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.reviews-message { margin: 16px 0; color: var(--text-secondary); font-size: .9rem; }
+.reviews-message.error { color: #fca5a5; }
+.reviews-message.success { margin-bottom: 0; color: #86efac; }
+.empty-reviews { padding: 20px 0; }
+
 @media (max-width: 768px) {
   .body-grid {
     grid-template-columns: 1fr;
@@ -508,5 +680,10 @@ watch(() => props.movie, loadDetailData, { immediate: true });
     max-width: 240px;
     margin: 0 auto;
   }
+  .modal-body { padding: 22px 18px; }
+  .reviews-heading, .review-login-prompt { align-items: flex-start; flex-direction: column; }
+  .reviews-summary { justify-items: start; }
+  .review-card-heading { align-items: flex-start; flex-direction: column; }
+  .review-comment { margin-left: 0; }
 }
 </style>

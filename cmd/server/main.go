@@ -43,6 +43,7 @@ func main() {
 	movieRoutes := r.Group("/movies")
 	{
 		movieRoutes.GET("", handler.GetMovies)
+		movieRoutes.GET("/:id/reviews", handler.GetMovieReviews)
 		movieRoutes.GET("/:id", handler.GetMovieByID)
 		movieRoutes.GET("/detail/:slug", handler.GetMovieDetailBySlug)
 		movieRoutes.POST("", handler.CreateMovie)
@@ -73,6 +74,8 @@ func main() {
 	apiRoutes.Use(handler.AuthMiddleware())
 	{
 		apiRoutes.GET("/watchlist", handler.GetUserWatchlist)
+		apiRoutes.GET("/reviews", handler.GetMyMovieReviews)
+		apiRoutes.POST("/movies/:id/reviews", handler.UpsertMovieReview)
 		apiRoutes.POST("/watchlist", handler.AddWatchlist)
 		apiRoutes.DELETE("/watchlist/:movieId", handler.RemoveWatchlist)
 		apiRoutes.GET("/bookings", handler.GetMyBookings)

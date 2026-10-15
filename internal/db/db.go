@@ -48,7 +48,7 @@ func InitDB() *gorm.DB {
 	err = database.AutoMigrate(
 		&model.User{}, &model.Watchlist{}, &model.GenreDB{}, &model.MovieDB{},
 		&model.Cinema{}, &model.Auditorium{}, &model.Showtime{}, &model.ShowSeat{},
-		&model.Booking{}, &model.BookingSeat{},
+		&model.Booking{}, &model.BookingSeat{}, &model.MovieReview{},
 	)
 	if err != nil {
 		log.Printf("⚠️ Lỗi AutoMigrate: %v", err)

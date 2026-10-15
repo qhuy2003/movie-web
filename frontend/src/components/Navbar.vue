@@ -72,6 +72,9 @@
             <router-link to="/my-tickets" class="dropdown-item" @click="isUserDropdownOpen = false">
               <TicketCheck :size="16" /> Vé của tôi
             </router-link>
+            <router-link to="/my-reviews" class="dropdown-item" @click="isUserDropdownOpen = false">
+              <Star :size="16" /> Đánh giá của tôi
+            </router-link>
             <button class="dropdown-item logout" @click="handleLogout">
               <LogOut :size="16" /> Đăng Xuất
             </button>
@@ -99,7 +102,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { Film, Search, Heart, Compass, Home, X, User, LogOut, ChevronDown, Shield, TicketCheck } from '@lucide/vue';
+import { Film, Search, Heart, Compass, Home, X, User, LogOut, ChevronDown, Shield, TicketCheck, Star } from '@lucide/vue';
 import { watchlistStore } from '../services/watchlist.js';
 import { authState, fetchMe } from '../services/auth.js';
 import AuthModal from './AuthModal.vue';

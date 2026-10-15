@@ -27,6 +27,7 @@
       @close="showDetailModal = false" 
       @play="handlePlayMovie" 
       @book="handleBookMovie"
+      @open-auth="showAuthModal = true"
     />
 
     <!-- Video Player Modal Screen -->

@@ -7,6 +7,7 @@ import RegisterView from '../views/RegisterView.vue';
 import AdminView from '../views/AdminView.vue';
 import BookingView from '../views/BookingView.vue';
 import MyTicketsView from '../views/MyTicketsView.vue';
+import MyReviewsView from '../views/MyReviewsView.vue';
 import { authState, fetchMe } from '../services/auth.js';
 
 const routes = [
@@ -34,6 +35,12 @@ const routes = [
     path: '/my-tickets',
     name: 'my-tickets',
     component: MyTicketsView,
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/my-reviews',
+    name: 'my-reviews',
+    component: MyReviewsView,
     meta: { requiresAuth: true }
   },
   {
